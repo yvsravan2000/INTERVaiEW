@@ -2,14 +2,10 @@
 import os
 import time
 import json
-import hashlib
 import requests
 import pandas as pd
-import secret as sec
 import streamlit as st
 import snowflake.connector as sf
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
 
 # Page configuration
 with st.spinner(text="Loading...", show_time=True):
@@ -30,7 +26,7 @@ with st.spinner(text="Loading...", show_time=True):
         st.session_state.logged_in = False
         st.session_state.cortex_chat_history = {'user_input': [], 'assistant_response': [], 'response_time_in_seconds': [], 'total_tokens': []}
         st.session_state.cortex_chat_settings = {'enable_guardrails': False, 'enable_conversation_memory': True, 'system_prompt_content': st.secrets["intervaiew"]["system_prompt_content"]}
-
+        st.session_state.remaining_balance_in_usd = 0.0
         st.session_state.sf_connection = None
         st.session_state.sf_cursor = None
 
@@ -221,6 +217,7 @@ st.title(":primary-background[ :primary[:material/group_work:] INTERV:primary[ai
 if(st.session_state.sf_connection is None):
     with st.spinner(text="Creating Snowflake connection...", show_time=True):
         create_connection()
+        st.session_state.remaining_balance_in_usd = float(execute_query_and_return_first_value("SELECT MAX_BY(FREE_USAGE_BALANCE, DATE) AS REMAINING_CREDITS FROM SNOWFLAKE.ORGANIZATION_USAGE.REMAINING_BALANCE_DAILY;"))
 
 # Page tabs
 ai_page1_tab1, ai_page1_tab2 = st.tabs([":material/asterisk: Chat Interface", ":material/chat: Saved Conversations"])
@@ -335,7 +332,7 @@ with ai_page1_tab1:
         equivalent_cost_inr = snowflake_credits_spent * (convert_usd_to_inr(4))
 
         # Display stats
-        remaining_balance = ((convert_usd_to_inr(1)) * float(execute_query_and_return_first_value("SELECT MAX_BY(FREE_USAGE_BALANCE, DATE) AS REMAINING_CREDITS FROM SNOWFLAKE.ORGANIZATION_USAGE.REMAINING_BALANCE_DAILY;"))) / 1000
+        remaining_balance = ((convert_usd_to_inr(1)) * st.session_state.remaining_balance_in_usd) / 1000
         if(len(st.session_state.cortex_chat_history['user_input']) == 0):
             st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹0.00] \n#### :grey[*Longest Response Time*]<br>[n/a] \n#### :grey[*Avg. Response Time*]<br>[n/a] \n#### :grey[*Total Tokens*]<br>[0]", unsafe_allow_html=True)
         else:
