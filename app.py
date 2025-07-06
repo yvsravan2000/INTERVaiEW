@@ -85,7 +85,7 @@ def execute_query_and_return_first_value(query: str) -> str:
 # Function to convert USD to INR
 st.cache_data(ttl=3600)
 def convert_usd_to_inr(usd_amount: float) -> float:
-    response = requests.get(sec.usd2inr_api)
+    response = requests.get(st.secrets["freecurrencyapi"]["usd2inr_api_url"])
     data = response.json()
     usd_to_inr_rate = float(data.get("data", {}).get("INR", 85.4))  # Default to 85.4 if not found
     return usd_amount * usd_to_inr_rate

@@ -1,6 +1,0 @@
-usd2inr_api="https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_A4M3uzjea1oSkBPvjjxWO3QNRMdjnwhDD2ob1OSk&currencies=INR"
-username="TEST_USER"
-account="SFHBSFL-IKA46603"
-warehouse="COMPUTE_WH"
-database="TEST_DB"
-schema="TEST_SCH"
