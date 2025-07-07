@@ -224,7 +224,7 @@ ai_page1_tab1, ai_page1_tab2 = st.tabs([":material/asterisk: Chat Interface", ":
 
 with ai_page1_tab1:
     # Tab1 columns
-    ai_page1_tab1_col1, ai_page1_tab1_col2, ai_page1_tab1_col3 = st.columns(spec=[29, 1, 70], gap="small", vertical_alignment="top")
+    ai_page1_tab1_col1, ai_page1_tab1_col2 = st.columns(spec=[27, 72], gap="small", vertical_alignment="top")
 
     # Column 1: Stats
     with ai_page1_tab1_col1:
@@ -242,24 +242,9 @@ with ai_page1_tab1:
             st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹0.00] \n#### :grey[*Longest Response Time*]<br>[n/a] \n#### :grey[*Avg. Response Time*]<br>[n/a] \n#### :grey[*Total Tokens*]<br>[0]", unsafe_allow_html=True)
         else:
             st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹{equivalent_cost_inr:.2f}] \n#### :grey[*Longest Response Time*]<br>[{longest_response_time:.2f} seconds] \n#### :grey[*Avg. Response Time*]<br>[{response_time_average:.2f} seconds] \n#### :grey[*Total Tokens*]<br>[{total_tokens_sum:,}]", unsafe_allow_html=True)
-    
-    # Column 2: Vertical Divider
-    with ai_page1_tab1_col2:
-        st.html(
-                '''
-                    <div class="divider-vertical-line"></div>
-                    <style>
-                        .divider-vertical-line {
-                            border-left: 2px solid rgba(49, 51, 63, 0.2);
-                            height: 500px;
-                            margin: auto;
-                        }
-                    </style>
-                '''
-            )
 
-    # Column 3: Chat Interface
-    with ai_page1_tab1_col3:
+    # Column 2: Chat Interface
+    with ai_page1_tab1_col2:
         # Chat history container
         with st.container(height=440, border=True):
             for iterator in range(len(st.session_state.cortex_chat_history['user_input'])):
