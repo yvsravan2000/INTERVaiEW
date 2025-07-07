@@ -224,10 +224,42 @@ ai_page1_tab1, ai_page1_tab2 = st.tabs([":material/asterisk: Chat Interface", ":
 
 with ai_page1_tab1:
     # Tab1 columns
-    ai_page1_tab1_col1, ai_page1_tab1_col2, ai_page1_tab1_col3 = st.columns(spec=[70, 1, 29], gap="small", vertical_alignment="top")
+    ai_page1_tab1_col1, ai_page1_tab1_col2, ai_page1_tab1_col3 = st.columns(spec=[29, 1, 70], gap="small", vertical_alignment="top")
 
-    # Column 1: Chat Interface
+    # Column 1: Stats
     with ai_page1_tab1_col1:
+        # Calculate stats
+        ai_page1_tab1_stats_df = pd.DataFrame(st.session_state.cortex_chat_history)
+        total_tokens_sum = ai_page1_tab1_stats_df['total_tokens'].sum()
+        longest_response_time = ai_page1_tab1_stats_df['response_time_in_seconds'].max()
+        response_time_average = ai_page1_tab1_stats_df['response_time_in_seconds'].mean()
+        snowflake_credits_spent = ((1.4/1000000)*total_tokens_sum)+((1/3600)*ai_page1_tab1_stats_df['response_time_in_seconds'].sum())
+        equivalent_cost_inr = snowflake_credits_spent * (convert_usd_to_inr(4))
+
+        # Display stats
+        remaining_balance = ((convert_usd_to_inr(1)) * st.session_state.remaining_balance_in_usd) / 1000
+        if(len(st.session_state.cortex_chat_history['user_input']) == 0):
+            st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹0.00] \n#### :grey[*Longest Response Time*]<br>[n/a] \n#### :grey[*Avg. Response Time*]<br>[n/a] \n#### :grey[*Total Tokens*]<br>[0]", unsafe_allow_html=True)
+        else:
+            st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹{equivalent_cost_inr:.2f}] \n#### :grey[*Longest Response Time*]<br>[{longest_response_time:.2f} seconds] \n#### :grey[*Avg. Response Time*]<br>[{response_time_average:.2f} seconds] \n#### :grey[*Total Tokens*]<br>[{total_tokens_sum:,}]", unsafe_allow_html=True)
+    
+    # Column 2: Vertical Divider
+    with ai_page1_tab1_col2:
+        st.html(
+                '''
+                    <div class="divider-vertical-line"></div>
+                    <style>
+                        .divider-vertical-line {
+                            border-left: 2px solid rgba(49, 51, 63, 0.2);
+                            height: 500px;
+                            margin: auto;
+                        }
+                    </style>
+                '''
+            )
+
+    # Column 3: Chat Interface
+    with ai_page1_tab1_col3:
         # Chat history container
         with st.container(height=440, border=True):
             for iterator in range(len(st.session_state.cortex_chat_history['user_input'])):
@@ -252,26 +284,10 @@ with ai_page1_tab1:
             assistant_response_placeholder = st.empty()
 
         # Tab1 input columns
-        ai_page1_tab1_col1_input_col1, ai_page1_tab1_col1_input_col2, ai_page1_tab1_col1_input_col3, ai_page1_tab1_col1_input_col4 = st.columns(spec=[6, 6, 6, 82], gap="small", vertical_alignment="center")
-
-        # Chat options
-        if(ai_page1_tab1_col1_input_col1.button(label=":red[**:material/mop:**]", help="Clear chat history", use_container_width=True)):
-            if(len(st.session_state.cortex_chat_history['user_input']) == 0):
-                st.toast(":gray[**There are no messages in the chat history to clear.**]", icon=":material/notifications_active:")
-            else:
-                clear_chat_history()
-
-        if(ai_page1_tab1_col1_input_col2.button(label=":green[**:material/save:**]", help="Save chat history", use_container_width=True)):
-            if(len(st.session_state.cortex_chat_history['user_input']) == 0):
-                st.toast(":gray[**There are no messages in the chat history to save.**]", icon=":material/notifications_active:")
-            else:
-                save_chat_history()
-
-        if(ai_page1_tab1_col1_input_col3.button(label=":blue[**:material/settings:**]", help="Chat Settings", use_container_width=True)):
-            modify_chat_settings()
+        ai_page1_tab1_col1_input_col1, ai_page1_tab1_col1_input_col2, ai_page1_tab1_col1_input_col3, ai_page1_tab1_col1_input_col4 = st.columns(spec=[82, 6, 6, 6], gap="small", vertical_alignment="center")
 
         # Chat input
-        if(cortex_input_tokens := ai_page1_tab1_col1_input_col4.chat_input(placeholder="Ask anything", accept_file=False)):
+        if(cortex_input_tokens := ai_page1_tab1_col1_input_col1.chat_input(placeholder="Ask anything", accept_file=False)):
             # Display user input in chat message container
             with user_input_placeholder.chat_message(name="user", avatar=":material/person:"):
                 st.markdown(cortex_input_tokens)
@@ -306,37 +322,21 @@ with ai_page1_tab1:
             st.session_state.cortex_chat_history['response_time_in_seconds'].append(response_time_in_seconds)
             st.session_state.cortex_chat_history['total_tokens'].append(total_tokens)
 
-    # Column 2: Vertical Divider
-    with ai_page1_tab1_col2:
-        st.html(
-                '''
-                    <div class="divider-vertical-line"></div>
-                    <style>
-                        .divider-vertical-line {
-                            border-left: 2px solid rgba(49, 51, 63, 0.2);
-                            height: 500px;
-                            margin: auto;
-                        }
-                    </style>
-                '''
-            )
+        # Chat options
+        if(ai_page1_tab1_col1_input_col2.button(label=":red[**:material/mop:**]", help="Clear chat history", use_container_width=True)):
+            if(len(st.session_state.cortex_chat_history['user_input']) == 0):
+                st.toast(":gray[**There are no messages in the chat history to clear.**]", icon=":material/notifications_active:")
+            else:
+                clear_chat_history()
 
-    # Column 3: Stats
-    with ai_page1_tab1_col3:
-        # Calculate stats
-        ai_page1_tab1_stats_df = pd.DataFrame(st.session_state.cortex_chat_history)
-        total_tokens_sum = ai_page1_tab1_stats_df['total_tokens'].sum()
-        longest_response_time = ai_page1_tab1_stats_df['response_time_in_seconds'].max()
-        response_time_average = ai_page1_tab1_stats_df['response_time_in_seconds'].mean()
-        snowflake_credits_spent = ((1.4/1000000)*total_tokens_sum)+((1/3600)*ai_page1_tab1_stats_df['response_time_in_seconds'].sum())
-        equivalent_cost_inr = snowflake_credits_spent * (convert_usd_to_inr(4))
+        if(ai_page1_tab1_col1_input_col3.button(label=":green[**:material/save:**]", help="Save chat history", use_container_width=True)):
+            if(len(st.session_state.cortex_chat_history['user_input']) == 0):
+                st.toast(":gray[**There are no messages in the chat history to save.**]", icon=":material/notifications_active:")
+            else:
+                save_chat_history()
 
-        # Display stats
-        remaining_balance = ((convert_usd_to_inr(1)) * st.session_state.remaining_balance_in_usd) / 1000
-        if(len(st.session_state.cortex_chat_history['user_input']) == 0):
-            st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹0.00] \n#### :grey[*Longest Response Time*]<br>[n/a] \n#### :grey[*Avg. Response Time*]<br>[n/a] \n#### :grey[*Total Tokens*]<br>[0]", unsafe_allow_html=True)
-        else:
-            st.markdown(f"## :primary[<u>Stats</u>] \n#### :grey[*Remaining Balance*]<br>[₹{remaining_balance:.1f}k] \n#### :grey[*Conversation Cost*]<br>[₹{equivalent_cost_inr:.2f}] \n#### :grey[*Longest Response Time*]<br>[{longest_response_time:.2f} seconds] \n#### :grey[*Avg. Response Time*]<br>[{response_time_average:.2f} seconds] \n#### :grey[*Total Tokens*]<br>[{total_tokens_sum:,}]", unsafe_allow_html=True)
+        if(ai_page1_tab1_col1_input_col4.button(label=":blue[**:material/settings:**]", help="Chat Settings", use_container_width=True)):
+            modify_chat_settings()
 
 with ai_page1_tab2:
     # User input for saved chats
