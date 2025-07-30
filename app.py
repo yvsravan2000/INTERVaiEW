@@ -217,7 +217,8 @@ st.title(":primary-background[ :primary[:material/group_work:] INTERV:primary[ai
 if(st.session_state.sf_connection is None):
     with st.spinner(text="Creating Snowflake connection...", show_time=True):
         create_connection()
-        st.session_state.remaining_balance_in_usd = float(execute_query_and_return_first_value("SELECT MAX_BY(FREE_USAGE_BALANCE, DATE) AS REMAINING_CREDITS FROM SNOWFLAKE.ORGANIZATION_USAGE.REMAINING_BALANCE_DAILY;"))
+        remaining_balance_in_usd = execute_query_and_return_first_value("SELECT MAX_BY(FREE_USAGE_BALANCE, DATE) AS REMAINING_CREDITS FROM SNOWFLAKE.ORGANIZATION_USAGE.REMAINING_BALANCE_DAILY;")
+        st.session_state.remaining_balance_in_usd = float(remaining_balance_in_usd if remaining_balance_in_usd is not None else 400.0)
 
 # Page tabs
 ai_page1_tab1, ai_page1_tab2 = st.tabs([":material/asterisk: Chat Interface", ":material/chat: Saved Conversations"])
